@@ -1,0 +1,453 @@
+<!-- signup.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign Up — CodeMates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+--bg-dark: #14161C;
+--card-dark: #1C1F27;
+--border-dark: #262A34;
+--text-dark: #ECECEC;
+--muted-dark: #8B92A1;
+--bg-light: #FAFAF8;
+--card-light: #FFFFFF;
+--border-light: #E7E5DF;
+--text-light: #1A1C22;
+--muted-light: #6B7280;
+--accent: #FF6B4A;
+--bg: var(--bg-dark);
+--card: var(--card-dark);
+--border: var(--border-dark);
+--text: var(--text-dark);
+--muted: var(--muted-dark);
+}
+[data-theme="light"] {
+--bg: var(--bg-light);
+--card: var(--card-light);
+--border: var(--border-light);
+--text: var(--text-light);
+--muted: var(--muted-light);
+}
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+body {
+background-color: var(--bg);
+color: var(--text);
+font-family: 'Inter', sans-serif;
+font-weight: 400;
+line-height: 1.5;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+transition: background-color 0.2s ease, color 0.2s ease;
+}
+.navbar {
+width: 100%;
+border-bottom: 1px solid var(--border);
+background-color: var(--bg);
+position: sticky;
+top: 0;
+z-index: 50;
+}
+.nav-container {
+max-width: 1120px;
+margin: 0 auto;
+padding: 0.875rem 1rem;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.brand {
+font-family: 'Manrope', sans-serif;
+font-weight: 800;
+font-size: 1.25rem;
+color: var(--text);
+text-decoration: none;
+letter-spacing: -0.02em;
+display: inline-flex;
+align-items: center;
+gap: 0.375rem;
+}
+.brand span {
+color: var(--accent);
+}
+.nav-actions {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+}
+.theme-toggle {
+background: var(--card);
+border: 1px solid var(--border);
+color: var(--text);
+border-radius: 8px;
+padding: 0.45rem 0.65rem;
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+font-weight: 500;
+cursor: pointer;
+display: inline-flex;
+align-items: center;
+gap: 0.375rem;
+transition: border-color 0.15s ease;
+}
+.theme-toggle:hover {
+border-color: var(--accent);
+}
+.nav-link {
+font-size: 0.875rem;
+font-weight: 500;
+color: var(--muted);
+text-decoration: none;
+transition: color 0.15s ease;
+}
+.nav-link:hover {
+color: var(--text);
+}
+.main-container {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 2rem 1rem;
+}
+.auth-card {
+width: 100%;
+max-width: 440px;
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 1.75rem 1.5rem;
+}
+@media (min-width: 480px) {
+.auth-card {
+padding: 2.25rem 2rem;
+}
+}
+.badge {
+display: inline-block;
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+font-weight: 500;
+color: var(--accent);
+background-color: rgba(255, 107, 74, 0.1);
+border: 1px solid rgba(255, 107, 74, 0.25);
+border-radius: 8px;
+padding: 0.25rem 0.625rem;
+margin-bottom: 0.875rem;
+}
+.auth-title {
+font-family: 'Manrope', sans-serif;
+font-weight: 800;
+font-size: 1.5rem;
+letter-spacing: -0.02em;
+margin-bottom: 0.375rem;
+color: var(--text);
+}
+.auth-subtitle {
+font-size: 0.875rem;
+color: var(--muted);
+margin-bottom: 1.5rem;
+}
+.form-group {
+margin-bottom: 1.125rem;
+}
+.form-row {
+display: grid;
+grid-template-columns: 1fr;
+gap: 1.125rem;
+}
+@media (min-width: 480px) {
+.form-row {
+grid-template-columns: 1fr 1fr;
+gap: 0.875rem;
+}
+}
+label {
+display: block;
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+font-weight: 500;
+color: var(--text);
+margin-bottom: 0.45rem;
+text-transform: uppercase;
+letter-spacing: 0.03em;
+}
+input,
+select {
+width: 100%;
+background-color: var(--bg);
+color: var(--text);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.675rem 0.875rem;
+font-family: 'Inter', sans-serif;
+font-size: 0.9375rem;
+outline: none;
+transition: border-color 0.15s ease;
+}
+input::placeholder {
+color: var(--muted);
+opacity: 0.7;
+}
+input:focus,
+select:focus {
+border-color: var(--accent);
+}
+select {
+cursor: pointer;
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B92A1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 0.875rem center;
+padding-right: 2.25rem;
+}
+.btn-submit {
+width: 100%;
+margin-top: 0.5rem;
+background-color: var(--accent);
+color: #FFFFFF;
+font-family: 'Inter', sans-serif;
+font-size: 0.9375rem;
+font-weight: 600;
+border: none;
+border-radius: 8px;
+padding: 0.75rem 1rem;
+cursor: pointer;
+transition: opacity 0.15s ease;
+}
+.btn-submit:hover {
+opacity: 0.92;
+}
+.btn-submit:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+}
+.status-box {
+display: none;
+border-radius: 8px;
+padding: 0.75rem 0.875rem;
+font-size: 0.85rem;
+margin-bottom: 1.25rem;
+border: 1px solid transparent;
+}
+.status-box.error {
+display: block;
+background-color: rgba(239, 68, 68, 0.1);
+border-color: rgba(239, 68, 68, 0.3);
+color: #F87171;
+}
+.status-box.success {
+display: block;
+background-color: rgba(16, 185, 129, 0.1);
+border-color: rgba(16, 185, 129, 0.3);
+color: #34D399;
+}
+.auth-footer {
+margin-top: 1.5rem;
+padding-top: 1.25rem;
+border-top: 1px solid var(--border);
+text-align: center;
+font-size: 0.875rem;
+color: var(--muted);
+}
+.auth-footer a {
+color: var(--accent);
+font-weight: 500;
+text-decoration: none;
+}
+.auth-footer a:hover {
+text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<header class="navbar">
+<div class="nav-container">
+<a href="index.html" class="brand">Code<span>Mates</span></a>
+<div class="nav-actions">
+<a href="signin.html" class="nav-link">Sign In</a>
+<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+<span id="themeLabel">LIGHT</span>
+</button>
+</div>
+</div>
+</header>
+<main class="main-container">
+<section class="auth-card">
+<span class="badge">// JOIN THE COMMUNITY</span>
+<h1 class="auth-title">Create your account</h1>
+<p class="auth-subtitle">Open to all tech students building skills & acing academics together.</p>
+<div id="statusBox" class="status-box" role="alert"></div>
+<form id="signupForm" novalidate>
+<div class="form-group">
+<label for="fullName">Full Name</label>
+<input
+type="text"
+id="fullName"
+name="fullName"
+placeholder="e.g. Amaan Khan"
+required
+autocomplete="name"
+/>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label for="course">Course</label>
+<select id="course" name="course" required>
+<option value="" disabled selected>Select course</option>
+<option value="BCA">BCA</option>
+<option value="BCS">BCS</option>
+<option value="BCSIT">BCSIT</option>
+<option value="BTech">BTech</option>
+<option value="BBA">BBA</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-group">
+<label for="college">College</label>
+<input
+type="text"
+id="college"
+name="college"
+placeholder="Your college name"
+required
+autocomplete="organization"
+/>
+</div>
+</div>
+<div class="form-group">
+<label for="email">Email Address</label>
+<input
+type="email"
+id="email"
+name="email"
+placeholder="you@example.com"
+required
+autocomplete="email"
+/>
+</div>
+<div class="form-group">
+<label for="password">Password</label>
+<input
+type="password"
+id="password"
+name="password"
+placeholder="Minimum 6 characters"
+minlength="6"
+required
+autocomplete="new-password"
+/>
+</div>
+<button type="submit" class="btn-submit" id="submitBtn">Create Account</button>
+</form>
+<div class="auth-footer">
+Already have an account? <a href="signin.html">Sign In</a>
+</div>
+</section>
+</main>
+<script>
+// =========================================================================
+// SUPABASE CONFIGURATION
+// =========================================================================
+const SUPABASE_URL = 'https://vswmvhkmhwoiklknqbcz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_TtaZcjsV0Ucf1sf9FWqUOw_pp8QezU0';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// =========================================================================
+// THEME TOGGLE (Dark Default)
+// =========================================================================
+const rootEl = document.documentElement;
+const themeToggleBtn = document.getElementById('themeToggle');
+const themeLabel = document.getElementById('themeLabel');
+function applyTheme(theme) {
+rootEl.setAttribute('data-theme', theme);
+localStorage.setItem('codemates-theme', theme);
+themeLabel.textContent = theme === 'dark' ? 'LIGHT' : 'DARK';
+}
+const savedTheme = localStorage.getItem('codemates-theme') || 'dark';
+applyTheme(savedTheme);
+themeToggleBtn.addEventListener('click', () => {
+const currentTheme = rootEl.getAttribute('data-theme');
+applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+});
+
+// =========================================================================
+// SIGN UP HANDLER
+// =========================================================================
+const signupForm = document.getElementById('signupForm');
+const submitBtn = document.getElementById('submitBtn');
+const statusBox = document.getElementById('statusBox');
+function showStatus(message, type) {
+statusBox.textContent = message;
+statusBox.className = `status-box ${type}`;
+}
+signupForm.addEventListener('submit', async (e) => {
+e.preventDefault();
+statusBox.className = 'status-box';
+statusBox.textContent = '';
+const fullName = document.getElementById('fullName').value.trim();
+const course = document.getElementById('course').value;
+const college = document.getElementById('college').value.trim();
+const email = document.getElementById('email').value.trim();
+const password = document.getElementById('password').value;
+if (!fullName || !course || !college || !email || !password) {
+showStatus('Please fill in all fields.', 'error');
+return;
+}
+if (password.length < 6) {
+showStatus('Password must be at least 6 characters long.', 'error');
+return;
+}
+submitBtn.disabled = true;
+submitBtn.textContent = 'Creating account...';
+try {
+const { data, error } = await supabaseClient.auth.signUp({
+email,
+password,
+options: {
+data: {
+full_name: fullName,
+course: course,
+college: college
+}
+}
+});
+if (error) {
+throw error;
+}
+// Sync course & college into profiles row created by handle_new_user trigger
+if (data && data.user) {
+await supabaseClient
+.from('profiles')
+.update({
+full_name: fullName,
+course: course,
+college: college
+})
+.eq('id', data.user.id);
+}
+showStatus('Account created! Redirecting to home...', 'success');
+setTimeout(() => {
+window.location.href = 'index.html';
+}, 600);
+} catch (err) {
+showStatus(err.message || 'Failed to sign up. Please try again.', 'error');
+submitBtn.disabled = false;
+submitBtn.textContent = 'Create Account';
+}
+});
+</script>
+</body>
+  </html>
+  
