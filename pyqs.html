@@ -1,0 +1,604 @@
+<!-- pyqs.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Previous Year Questions (PYQs) — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for PYQs (pyqs.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      margin-top: 2rem;
+      margin-bottom: 1.75rem;
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 768px) {
+      .filter-bar {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 1.15rem 1.25rem;
+      }
+    }
+
+    .filter-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      flex: 1;
+    }
+
+    @media (min-width: 540px) {
+      .filter-controls {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 520px;
+      }
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .filter-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .filter-select {
+      width: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 2.2rem 0.6rem 0.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B92A1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      transition: border-color 0.15s ease;
+    }
+
+    .filter-select:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-reset:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    /* PYQs Grid & Cards */
+    .pyqs-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.15rem;
+      padding-bottom: 2.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .pyqs-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .pyqs-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .pyq-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.15rem;
+      height: 100%;
+    }
+
+    .pyq-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .pyq-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: rgba(255, 107, 74, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+    }
+
+    .pyq-tag-secondary {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .pyq-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .pyq-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .pyq-footer {
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .pyq-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-open-pyq {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Empty & Loading States */
+    .state-box {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .state-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-header">
+      <span class="badge">// EXAM PREPARATION</span>
+      <h1 class="page-title">Previous Year <span>Questions</span></h1>
+      <p class="page-subtitle">
+        Past university question papers organized by subject and semester so you can master exam patterns, practice important questions, and walk into every exam prepared.
+      </p>
+    </section>
+
+    <section class="filter-bar" aria-label="Filter PYQs">
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="subjectFilter" class="filter-label">Subject</label>
+          <select id="subjectFilter" class="filter-select">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="semesterFilter" class="filter-label">Semester</label>
+          <select id="semesterFilter" class="filter-select">
+            <option value="">All Semesters</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-meta">
+        <span class="results-count" id="resultsCount">Loading...</span>
+        <button type="button" class="btn-reset" id="resetFiltersBtn">RESET</button>
+      </div>
+    </section>
+
+    <div id="stateContainer" class="state-box">
+      <span class="state-tag">// FETCHING DATA</span>
+      <h2 class="state-title">Loading PYQs...</h2>
+      <p class="state-desc">Connecting to CodeMates database.</p>
+    </div>
+
+    <div id="pyqsGrid" class="pyqs-grid" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script>
+    (function () {
+      var subjectFilter = document.getElementById('subjectFilter');
+      var semesterFilter = document.getElementById('semesterFilter');
+      var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+      var resultsCount = document.getElementById('resultsCount');
+      var stateContainer = document.getElementById('stateContainer');
+      var pyqsGrid = document.getElementById('pyqsGrid');
+
+      var allPyqs = [];
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatDate(isoString) {
+        if (!isoString) return '';
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return '';
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      }
+
+      function populateDropdowns(pyqs) {
+        var subjectsMap = {};
+        var semestersMap = {};
+        var subjects = [];
+        var semesters = [];
+
+        for (var i = 0; i < pyqs.length; i++) {
+          var subj = pyqs[i].subject ? String(pyqs[i].subject).trim() : '';
+          var sem = pyqs[i].semester ? String(pyqs[i].semester).trim() : '';
+
+          if (subj && !subjectsMap[subj]) {
+            subjectsMap[subj] = true;
+            subjects.push(subj);
+          }
+          if (sem && !semestersMap[sem]) {
+            semestersMap[sem] = true;
+            semesters.push(sem);
+          }
+        }
+
+        subjects.sort();
+        semesters.sort();
+
+        var subjectOptions = '<option value="">All Subjects</option>';
+        for (var j = 0; j < subjects.length; j++) {
+          var safeSubj = escapeHtml(subjects[j]);
+          subjectOptions += '<option value="' + safeSubj + '">' + safeSubj + '</option>';
+        }
+        subjectFilter.innerHTML = subjectOptions;
+
+        var semesterOptions = '<option value="">All Semesters</option>';
+        for (var k = 0; k < semesters.length; k++) {
+          var safeSem = escapeHtml(semesters[k]);
+          semesterOptions += '<option value="' + safeSem + '">' + safeSem + '</option>';
+        }
+        semesterFilter.innerHTML = semesterOptions;
+      }
+
+      function showEmptyState(tagText, titleText, descText) {
+        pyqsGrid.style.display = 'none';
+        pyqsGrid.innerHTML = '';
+        stateContainer.style.display = 'block';
+        stateContainer.innerHTML =
+          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
+      }
+
+      function renderPyqs() {
+        var selectedSubject = subjectFilter.value;
+        var selectedSemester = semesterFilter.value;
+
+        var filtered = [];
+        for (var i = 0; i < allPyqs.length; i++) {
+          var item = allPyqs[i];
+          var itemSubj = item.subject ? String(item.subject).trim() : '';
+          var itemSem = item.semester ? String(item.semester).trim() : '';
+
+          var matchesSubject = !selectedSubject || itemSubj === selectedSubject;
+          var matchesSemester = !selectedSemester || itemSem === selectedSemester;
+
+          if (matchesSubject && matchesSemester) {
+            filtered.push(item);
+          }
+        }
+
+        var countLabel = filtered.length === 1 ? '1 PYQ' : filtered.length + ' PYQs';
+        resultsCount.textContent = countLabel;
+
+        if (allPyqs.length === 0) {
+          showEmptyState(
+            '// NO PYQS YET',
+            'No question papers published yet',
+            'Previous year question papers uploaded by CodeMates admins will appear here soon.'
+          );
+          return;
+        }
+
+        if (filtered.length === 0) {
+          showEmptyState(
+            '// NO MATCHES',
+            'No PYQs match your filters',
+            'Try selecting a different subject or semester, or reset the filters.'
+          );
+          return;
+        }
+
+        stateContainer.style.display = 'none';
+        pyqsGrid.style.display = 'grid';
+
+        var html = '';
+        for (var j = 0; j < filtered.length; j++) {
+          var pyq = filtered[j];
+          var title = escapeHtml(pyq.title || 'Untitled Question Paper');
+          var subject = escapeHtml(pyq.subject || 'General');
+          var semester = escapeHtml(pyq.semester || 'All Sems');
+          var description = escapeHtml(pyq.description || 'No description provided.');
+          var dateStr = formatDate(pyq.created_at);
+          var linkUrl = pyq.external_link || pyq.file_url || '#';
+          var safeUrl = escapeHtml(linkUrl);
+
+          html +=
+            '<article class="card pyq-card">' +
+              '<div>' +
+                '<div class="pyq-tags">' +
+                  '<span class="pyq-tag">' + subject + '</span>' +
+                  '<span class="pyq-tag-secondary">' + semester + '</span>' +
+                '</div>' +
+                '<h2 class="pyq-title">' + title + '</h2>' +
+                '<p class="pyq-desc">' + description + '</p>' +
+              '</div>' +
+              '<div class="pyq-footer">' +
+                '<span class="pyq-date">' + escapeHtml(dateStr) + '</span>' +
+                '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-pyq">' +
+                  'Open PYQ &rarr;' +
+                '</a>' +
+              '</div>' +
+            '</article>';
+        }
+
+        pyqsGrid.innerHTML = html;
+      }
+
+      async function fetchPyqs() {
+        if (typeof supabaseClient === 'undefined') {
+          resultsCount.textContent = '0 PYQs';
+          showEmptyState(
+            '// CONNECTION ERROR',
+            'Supabase client not found',
+            'Please make sure js/supabaseClient.js is loaded properly.'
+          );
+          return;
+        }
+
+        try {
+          var response = await supabaseClient
+            .from('content')
+            .select('*')
+            .eq('type', 'pyq')
+            .order('created_at', { ascending: false });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          allPyqs = response.data || [];
+          populateDropdowns(allPyqs);
+          renderPyqs();
+        } catch (err) {
+          resultsCount.textContent = 'Error';
+          showEmptyState(
+            '// ERROR LOADING PYQS',
+            'Could not load question papers',
+            err.message || 'Please check your connection and try refreshing the page.'
+          );
+        }
+      }
+
+      subjectFilter.addEventListener('change', renderPyqs);
+      semesterFilter.addEventListener('change', renderPyqs);
+
+      resetFiltersBtn.addEventListener('click', function () {
+        subjectFilter.value = '';
+        semesterFilter.value = '';
+        renderPyqs();
+      });
+
+      fetchPyqs();
+    })();
+  </script>
+</body>
+</html>
