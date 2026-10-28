@@ -1,0 +1,426 @@
+<!-- members.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Members — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for Members (members.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Meta Bar */
+    .meta-bar {
+      margin-top: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Members Grid & Cards */
+    .members-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding-bottom: 2.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .members-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .members-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .member-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      height: 100%;
+    }
+
+    .member-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .member-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: rgba(255, 107, 74, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+    }
+
+    .member-tag-secondary {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .member-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .member-college {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .member-footer {
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      min-height: 2.75rem;
+    }
+
+    .member-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-github {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Empty & Loading States */
+    .state-box {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .state-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-header">
+      <span class="badge">// COMMUNITY DIRECTORY</span>
+      <h1 class="page-title">CodeMates <span>Members</span></h1>
+      <p class="page-subtitle">
+        Connect with fellow tech students across colleges, courses, and engineering streams building skills together.
+      </p>
+    </section>
+
+    <div class="meta-bar">
+      <span class="results-count" id="resultsCount">Loading...</span>
+    </div>
+
+    <div id="stateContainer" class="state-box">
+      <span class="state-tag">// FETCHING DATA</span>
+      <h2 class="state-title">Loading members...</h2>
+      <p class="state-desc">Connecting to CodeMates database.</p>
+    </div>
+
+    <div id="membersGrid" class="members-grid" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script>
+    (function () {
+      var resultsCount = document.getElementById('resultsCount');
+      var stateContainer = document.getElementById('stateContainer');
+      var membersGrid = document.getElementById('membersGrid');
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatDate(isoString) {
+        if (!isoString) return '';
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return '';
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      }
+
+      function showEmptyState(tagText, titleText, descText) {
+        membersGrid.style.display = 'none';
+        membersGrid.innerHTML = '';
+        stateContainer.style.display = 'block';
+        stateContainer.innerHTML =
+          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
+      }
+
+      function renderMembers(members) {
+        var countLabel = members.length === 1 ? '1 member' : members.length + ' members';
+        resultsCount.textContent = countLabel;
+
+        if (members.length === 0) {
+          showEmptyState(
+            '// NO MEMBERS YET',
+            'No members yet',
+            'Students who create profiles and join CodeMates will appear here.'
+          );
+          return;
+        }
+
+        stateContainer.style.display = 'none';
+        membersGrid.style.display = 'grid';
+
+        var html = '';
+        for (var i = 0; i < members.length; i++) {
+          var member = members[i];
+          var fullName = escapeHtml(member.full_name || 'CodeMates Member');
+          var course = escapeHtml(member.course || 'Student');
+          var college = escapeHtml(member.college || 'College');
+          var dateStr = formatDate(member.created_at);
+          var rawGithub = member.github_url ? String(member.github_url).trim() : '';
+          var githubHtml = '';
+
+          if (rawGithub) {
+            var safeGithub = escapeHtml(rawGithub);
+            githubHtml =
+              '<a href="' + safeGithub + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-github">' +
+                'GitHub &rarr;' +
+              '</a>';
+          }
+
+          html +=
+            '<article class="card member-card">' +
+              '<div>' +
+                '<div class="member-tags">' +
+                  '<span class="member-tag">' + course + '</span>' +
+                '<span class="member-tag-secondary">' + escapeHtml((member.role || 'member').toUpperCase()) + '</span>'   +
+                '</div>' +
+                '<h2 class="member-name">' + fullName + '</h2>' +
+                '<p class="member-college">' + college + '</p>' +
+              '</div>' +
+              '<div class="member-footer">' +
+                '<span class="member-date">' + escapeHtml(dateStr) + '</span>' +
+                githubHtml +
+              '</div>' +
+            '</article>';
+        }
+
+        membersGrid.innerHTML = html;
+      }
+
+      async function fetchMembers() {
+        if (typeof supabaseClient === 'undefined') {
+          resultsCount.textContent = '0 members';
+          showEmptyState(
+            '// CONNECTION ERROR',
+            'Supabase client not found',
+            'Please make sure js/supabaseClient.js is loaded properly.'
+          );
+          return;
+        }
+
+        try {
+          var response = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          var members = response.data || [];
+          renderMembers(members);
+        } catch (err) {
+          resultsCount.textContent = 'Error';
+          showEmptyState(
+            '// ERROR LOADING MEMBERS',
+            'Could not load community members',
+            err.message || 'Please check your connection and try refreshing the page.'
+          );
+        }
+      }
+
+      fetchMembers();
+    })();
+  </script>
+</body>
+</html>
