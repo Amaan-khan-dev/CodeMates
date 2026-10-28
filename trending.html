@@ -1,0 +1,414 @@
+<!-- trending.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trending Topics — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for Trending Topics (trending.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Meta Bar */
+    .meta-bar {
+      margin-top: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Trending Grid & Blog-Style Cards */
+    .trending-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding-bottom: 2.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .trending-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .trending-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .trending-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      height: 100%;
+    }
+
+    .trending-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .trending-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: rgba(255, 107, 74, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+    }
+
+    .trending-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 0.6rem;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .trending-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+
+    .trending-footer {
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      min-height: 2.75rem;
+    }
+
+    .trending-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-read-more {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Empty & Loading States */
+    .state-box {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .state-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-header">
+      <span class="badge">// TECH RADAR</span>
+      <h1 class="page-title">Trending <span>Topics</span></h1>
+      <p class="page-subtitle">
+        Bite-sized insights on modern frameworks, developer tools, AI workflows, and software engineering trends curated for the CodeMates community.
+      </p>
+    </section>
+
+    <div class="meta-bar">
+      <span class="results-count" id="resultsCount">Loading...</span>
+    </div>
+
+    <div id="stateContainer" class="state-box">
+      <span class="state-tag">// FETCHING DATA</span>
+      <h2 class="state-title">Loading trending topics...</h2>
+      <p class="state-desc">Connecting to CodeMates database.</p>
+    </div>
+
+    <div id="trendingGrid" class="trending-grid" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script>
+    (function () {
+      var resultsCount = document.getElementById('resultsCount');
+      var stateContainer = document.getElementById('stateContainer');
+      var trendingGrid = document.getElementById('trendingGrid');
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatDate(isoString) {
+        if (!isoString) return '';
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return '';
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      }
+
+      function showEmptyState(tagText, titleText, descText) {
+        trendingGrid.style.display = 'none';
+        trendingGrid.innerHTML = '';
+        stateContainer.style.display = 'block';
+        stateContainer.innerHTML =
+          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
+      }
+
+      function renderTrending(items) {
+        var countLabel = items.length === 1 ? '1 post' : items.length + ' posts';
+        resultsCount.textContent = countLabel;
+
+        if (items.length === 0) {
+          showEmptyState(
+            '// NO POSTS YET',
+            'No trending topics published yet',
+            'Tech radar posts and developer updates shared by CodeMates admins will appear here soon.'
+          );
+          return;
+        }
+
+        stateContainer.style.display = 'none';
+        trendingGrid.style.display = 'grid';
+
+        var html = '';
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          var title = escapeHtml(item.title || 'Untitled Topic');
+          var description = escapeHtml(item.description || 'No description provided.');
+          var dateStr = formatDate(item.created_at);
+          var rawLink = item.external_link ? String(item.external_link).trim() : '';
+          var linkHtml = '';
+
+          if (rawLink) {
+            var safeUrl = escapeHtml(rawLink);
+            linkHtml =
+              '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-read-more">' +
+                'Read More &rarr;' +
+              '</a>';
+          }
+
+          html +=
+            '<article class="card trending-card">' +
+              '<div>' +
+                '<div class="trending-tags">' +
+                  '<span class="trending-tag">TRENDING</span>' +
+                '</div>' +
+                '<h2 class="trending-title">' + title + '</h2>' +
+                '<p class="trending-desc">' + description + '</p>' +
+              '</div>' +
+              '<div class="trending-footer">' +
+                '<span class="trending-date">' + escapeHtml(dateStr) + '</span>' +
+                linkHtml +
+              '</div>' +
+            '</article>';
+        }
+
+        trendingGrid.innerHTML = html;
+      }
+
+      async function fetchTrending() {
+        if (typeof supabaseClient === 'undefined') {
+          resultsCount.textContent = '0 posts';
+          showEmptyState(
+            '// CONNECTION ERROR',
+            'Supabase client not found',
+            'Please make sure js/supabaseClient.js is loaded properly.'
+          );
+          return;
+        }
+
+        try {
+          var response = await supabaseClient
+            .from('content')
+            .select('*')
+            .eq('type', 'trending')
+            .order('created_at', { ascending: false });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          var items = response.data || [];
+          renderTrending(items);
+        } catch (err) {
+          resultsCount.textContent = 'Error';
+          showEmptyState(
+            '// ERROR LOADING TOPICS',
+            'Could not load trending topics',
+            err.message || 'Please check your connection and try refreshing the page.'
+          );
+        }
+      }
+
+      fetchTrending();
+    })();
+  </script>
+</body>
+</html>
