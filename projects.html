@@ -1,0 +1,407 @@
+<!-- projects.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Projects — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for Projects (projects.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Meta Bar */
+    .meta-bar {
+      margin-top: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Projects Grid & Cards */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding-bottom: 2.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .projects-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      height: 100%;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .project-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: rgba(255, 107, 74, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+    }
+
+    .project-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 0.55rem;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .project-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .project-footer {
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .project-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-github {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Empty & Loading States */
+    .state-box {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .state-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-header">
+      <span class="badge">// PEER SHOWCASE</span>
+      <h1 class="page-title">Member <span>Projects</span></h1>
+      <p class="page-subtitle">
+        Explore real-world web apps, tools, and open-source repositories built by students across the CodeMates community.
+      </p>
+    </section>
+
+    <div class="meta-bar">
+      <span class="results-count" id="resultsCount">Loading...</span>
+    </div>
+
+    <div id="stateContainer" class="state-box">
+      <span class="state-tag">// FETCHING DATA</span>
+      <h2 class="state-title">Loading projects...</h2>
+      <p class="state-desc">Connecting to CodeMates database.</p>
+    </div>
+
+    <div id="projectsGrid" class="projects-grid" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script>
+    (function () {
+      var resultsCount = document.getElementById('resultsCount');
+      var stateContainer = document.getElementById('stateContainer');
+      var projectsGrid = document.getElementById('projectsGrid');
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatDate(isoString) {
+        if (!isoString) return '';
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return '';
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      }
+
+      function showEmptyState(tagText, titleText, descText) {
+        projectsGrid.style.display = 'none';
+        projectsGrid.innerHTML = '';
+        stateContainer.style.display = 'block';
+        stateContainer.innerHTML =
+          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
+      }
+
+      function renderProjects(projects) {
+        var countLabel = projects.length === 1 ? '1 project' : projects.length + ' projects';
+        resultsCount.textContent = countLabel;
+
+        if (projects.length === 0) {
+          showEmptyState(
+            '// NO PROJECTS YET',
+            'No community projects published yet',
+            'Projects built and shared by CodeMates members will appear here soon.'
+          );
+          return;
+        }
+
+        stateContainer.style.display = 'none';
+        projectsGrid.style.display = 'grid';
+
+        var html = '';
+        for (var i = 0; i < projects.length; i++) {
+          var proj = projects[i];
+          var title = escapeHtml(proj.title || 'Untitled Project');
+          var description = escapeHtml(proj.description || 'No description provided.');
+          var memberName = escapeHtml(proj.member_name || 'CodeMates Member');
+          var dateStr = formatDate(proj.created_at);
+          var githubUrl = proj.github_link ? String(proj.github_link).trim() : '#';
+          var safeUrl = escapeHtml(githubUrl);
+
+          html +=
+            '<article class="card project-card">' +
+              '<div>' +
+                '<div class="project-tags">' +
+                  '<span class="project-tag">BY ' + memberName.toUpperCase() + '</span>' +
+                '</div>' +
+                '<h2 class="project-title">' + title + '</h2>' +
+                '<p class="project-desc">' + description + '</p>' +
+              '</div>' +
+              '<div class="project-footer">' +
+                '<span class="project-date">' + escapeHtml(dateStr) + '</span>' +
+                '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-github">' +
+                  'View on GitHub &rarr;' +
+                '</a>' +
+              '</div>' +
+            '</article>';
+        }
+
+        projectsGrid.innerHTML = html;
+      }
+
+      async function fetchProjects() {
+        if (typeof supabaseClient === 'undefined') {
+          resultsCount.textContent = '0 projects';
+          showEmptyState(
+            '// CONNECTION ERROR',
+            'Supabase client not found',
+            'Please make sure js/supabaseClient.js is loaded properly.'
+          );
+          return;
+        }
+
+        try {
+          var response = await supabaseClient
+            .from('projects')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          var projects = response.data || [];
+          renderProjects(projects);
+        } catch (err) {
+          resultsCount.textContent = 'Error';
+          showEmptyState(
+            '// ERROR LOADING PROJECTS',
+            'Could not load community projects',
+            err.message || 'Please check your connection and try refreshing the page.'
+          );
+        }
+      }
+
+      fetchProjects();
+    })();
+  </script>
+</body>
+</html>
