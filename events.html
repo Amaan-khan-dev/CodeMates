@@ -1,0 +1,431 @@
+<!-- events.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Events — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for Events (events.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Meta Bar */
+    .meta-bar {
+      margin-top: 1.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .results-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Events Grid & Cards */
+    .events-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding-bottom: 2.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .events-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .events-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .event-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      height: 100%;
+    }
+
+    .event-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .event-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: rgba(255, 107, 74, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+    }
+
+    .event-tag-secondary {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      background-color: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .event-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 0.55rem;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .event-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .event-footer {
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .event-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-event {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Empty & Loading States */
+    .state-box {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .state-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-header">
+      <span class="badge">// WORKSHOPS & MEETUPS</span>
+      <h1 class="page-title">Community <span>Events</span></h1>
+      <p class="page-subtitle">
+        Join live coding workshops, exam strategy sessions, peer code reviews, and community meetups.
+      </p>
+    </section>
+
+    <div class="meta-bar">
+      <span class="results-count" id="resultsCount">Loading...</span>
+    </div>
+
+    <div id="stateContainer" class="state-box">
+      <span class="state-tag">// FETCHING DATA</span>
+      <h2 class="state-title">Loading events...</h2>
+      <p class="state-desc">Connecting to CodeMates database.</p>
+    </div>
+
+    <div id="eventsGrid" class="events-grid" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script>
+    (function () {
+      var resultsCount = document.getElementById('resultsCount');
+      var stateContainer = document.getElementById('stateContainer');
+      var eventsGrid = document.getElementById('eventsGrid');
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatEventDate(isoString) {
+        if (!isoString) return 'TBD';
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return escapeHtml(isoString);
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var hours = d.getHours();
+        var minutes = d.getMinutes();
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        var minStr = minutes < 10 ? '0' + minutes : minutes;
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ', ' + hours + ':' + minStr + ' ' + ampm;
+      }
+
+      function showEmptyState(tagText, titleText, descText) {
+        eventsGrid.style.display = 'none';
+        eventsGrid.innerHTML = '';
+        stateContainer.style.display = 'block';
+        stateContainer.innerHTML =
+          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
+      }
+
+      function renderEvents(events) {
+        var countLabel = events.length === 1 ? '1 event' : events.length + ' events';
+        resultsCount.textContent = countLabel;
+
+        if (events.length === 0) {
+          showEmptyState(
+            '// NO UPCOMING EVENTS',
+            'No upcoming events',
+            'Workshops, exam strategy sessions, and meetups organized by CodeMates will appear here.'
+          );
+          return;
+        }
+
+        stateContainer.style.display = 'none';
+        eventsGrid.style.display = 'grid';
+
+        var html = '';
+        for (var i = 0; i < events.length; i++) {
+          var ev = events[i];
+          var title = escapeHtml(ev.title || 'Untitled Event');
+          var description = escapeHtml(ev.description || 'No description provided.');
+          var formattedDate = formatEventDate(ev.event_date);
+          var locOrLink = ev.location_or_link ? String(ev.location_or_link).trim() : '';
+          var actionBtnHtml = '';
+
+          if (locOrLink) {
+            var isUrl = locOrLink.indexOf('http://') === 0 || locOrLink.indexOf('https://') === 0;
+            var safeTarget = isUrl ? ' target="_blank" rel="noopener noreferrer"' : '';
+            var safeHref = escapeHtml(locOrLink);
+            actionBtnHtml =
+              '<a href="' + safeHref + '"' + safeTarget + ' class="btn btn-primary btn-event">' +
+                'Join / Location &rarr;' +
+              '</a>';
+          }
+
+          html +=
+            '<article class="card event-card">' +
+              '<div>' +
+                '<div class="event-tags">' +
+                  '<span class="event-tag">LIVE SESSION</span>' +
+                '</div>' +
+                '<h2 class="event-title">' + title + '</h2>' +
+                '<p class="event-desc">' + description + '</p>' +
+              '</div>' +
+              '<div class="event-footer">' +
+                '<span class="event-date">' + escapeHtml(formattedDate) + '</span>' +
+                actionBtnHtml +
+              '</div>' +
+            '</article>';
+        }
+
+        eventsGrid.innerHTML = html;
+      }
+
+      async function fetchEvents() {
+        if (typeof supabaseClient === 'undefined') {
+          resultsCount.textContent = '0 events';
+          showEmptyState(
+            '// CONNECTION ERROR',
+            'Supabase client not found',
+            'Please make sure js/supabaseClient.js is loaded properly.'
+          );
+          return;
+        }
+
+        try {
+          var response = await supabaseClient
+            .from('events')
+            .select('*')
+            .order('event_date', { ascending: true });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          var events = response.data || [];
+          renderEvents(events);
+        } catch (err) {
+          resultsCount.textContent = 'Error';
+          showEmptyState(
+            '// ERROR LOADING EVENTS',
+            'Could not load community events',
+            err.message || 'Please check your connection and try refreshing the page.'
+          );
+        }
+      }
+
+      fetchEvents();
+    })();
+  </script>
+</body>
+</html>
