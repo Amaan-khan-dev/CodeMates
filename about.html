@@ -1,0 +1,432 @@
+<!-- about.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About — CodeMates</title>
+<link rel="stylesheet" href="css/theme.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<style>
+.page-hero {
+padding: 3rem 0 2.5rem;
+border-bottom: 1px solid var(--border);
+}
+@media (min-width: 768px) {
+.page-hero {
+padding: 4.5rem 0 3.25rem;
+}
+}
+.page-hero-inner {
+max-width: 800px;
+}
+.page-hero .badge {
+margin-bottom: 1.15rem;
+}
+.page-title {
+font-size: 2.1rem;
+font-weight: 800;
+letter-spacing: -0.03em;
+line-height: 1.15;
+margin-bottom: 1.15rem;
+}
+.page-title span {
+color: var(--accent);
+}
+@media (min-width: 768px) {
+.page-title {
+font-size: 3rem;
+}
+}
+.page-lead {
+font-size: 1.05rem;
+color: var(--muted);
+line-height: 1.7;
+margin-bottom: 1rem;
+}
+.section {
+padding: 3rem 0;
+border-bottom: 1px solid var(--border);
+}
+.section:last-of-type {
+border-bottom: none;
+}
+.section-header {
+margin-bottom: 1.75rem;
+max-width: 680px;
+}
+.section-tag {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+font-weight: 500;
+color: var(--accent);
+text-transform: uppercase;
+letter-spacing: 0.04em;
+display: block;
+margin-bottom: 0.4rem;
+}
+.section-title {
+font-size: 1.55rem;
+font-weight: 800;
+margin-bottom: 0.5rem;
+}
+.section-desc {
+font-size: 0.95rem;
+color: var(--muted);
+}
+.pillars-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 1.25rem;
+}
+@media (min-width: 768px) {
+.pillars-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+}
+.pillar-card {
+padding: 1.5rem;
+display: flex;
+flex-direction: column;
+gap: 0.85rem;
+}
+@media (min-width: 640px) {
+.pillar-card {
+padding: 1.85rem;
+}
+}
+.pillar-tag {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+font-weight: 500;
+color: var(--accent);
+}
+.pillar-title {
+font-size: 1.35rem;
+}
+.pillar-text {
+font-size: 0.925rem;
+color: var(--muted);
+line-height: 1.65;
+}
+.pillar-list {
+list-style: none;
+margin-top: 0.35rem;
+display: flex;
+flex-direction: column;
+gap: 0.55rem;
+}
+.pillar-list li {
+font-size: 0.88rem;
+color: var(--text);
+display: flex;
+align-items: flex-start;
+gap: 0.55rem;
+}
+.pillar-list li::before {
+content: '->';
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.78rem;
+color: var(--accent);
+flex-shrink: 0;
+margin-top: 0.08rem;
+}
+.courses-wrap {
+display: flex;
+flex-wrap: wrap;
+gap: 0.65rem;
+margin-top: 1.25rem;
+}
+.course-pill {
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.55rem 0.95rem;
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.8rem;
+font-weight: 500;
+color: var(--text);
+}
+.course-pill span {
+color: var(--accent);
+margin-right: 0.35rem;
+}
+.values-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 1rem;
+}
+@media (min-width: 640px) {
+.values-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+}
+@media (min-width: 960px) {
+.values-grid {
+grid-template-columns: repeat(4, 1fr);
+}
+}
+.value-card {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+.value-num {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+color: var(--accent);
+}
+.value-title {
+font-size: 1.05rem;
+}
+.value-desc {
+font-size: 0.85rem;
+color: var(--muted);
+line-height: 1.6;
+}
+.cta-box {
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 2rem 1.5rem;
+display: flex;
+flex-direction: column;
+gap: 1.25rem;
+align-items: flex-start;
+justify-content: space-between;
+}
+@media (min-width: 768px) {
+.cta-box {
+flex-direction: row;
+align-items: center;
+padding: 2.5rem;
+}
+}
+.cta-content {
+max-width: 580px;
+}
+.cta-title {
+font-size: 1.45rem;
+margin-bottom: 0.4rem;
+}
+.cta-desc {
+font-size: 0.92rem;
+color: var(--muted);
+}
+.cta-actions {
+display: flex;
+flex-wrap: wrap;
+gap: 0.75rem;
+}
+.footer {
+border-top: 1px solid var(--border);
+padding: 2rem 1rem;
+margin-top: auto;
+}
+.footer-inner {
+max-width: 1120px;
+margin: 0 auto;
+display: flex;
+flex-direction: column;
+gap: 1rem;
+align-items: flex-start;
+justify-content: space-between;
+font-size: 0.85rem;
+color: var(--muted);
+}
+@media (min-width: 640px) {
+.footer-inner {
+flex-direction: row;
+align-items: center;
+}
+}
+.footer-links {
+display: flex;
+flex-wrap: wrap;
+gap: 1rem;
+}
+.footer-links a:hover {
+color: var(--accent);
+}
+</style>
+</head>
+<body>
+<header class="navbar">
+<div class="nav-container">
+<a href="index.html" class="brand">Code<span>Mates</span></a>
+<nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+<ul class="nav-links">
+<li><a href="index.html" class="nav-item-link">Home</a></li>
+<li><a href="notes.html" class="nav-item-link">Notes</a></li>
+<li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+<li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+<li><a href="trending.html" class="nav-item-link">Trending</a></li>
+<li><a href="projects.html" class="nav-item-link">Projects</a></li>
+<li><a href="members.html" class="nav-item-link">Members</a></li>
+<li><a href="events.html" class="nav-item-link">Events</a></li>
+<li><a href="join.html" class="nav-item-link">Join Us</a></li>
+</ul>
+</nav>
+<div class="nav-right">
+<div id="authNav">
+<a href="signin.html" class="nav-link">Sign In</a>
+<a href="signup.html" class="nav-btn-primary">Sign Up</a>
+</div>
+<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+<span id="themeLabel">LIGHT</span>
+</button>
+<button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+MENU
+</button>
+</div>
+</div>
+</header>
+<main class="container">
+<section class="page-hero">
+<div class="page-hero-inner">
+<span class="badge">// OUR MISSION & PURPOSE</span>
+<h1 class="page-title">
+Real coding skills and academic support, <span>built together.</span>
+</h1>
+<p class="page-lead">
+Too often, tech students are forced to choose between two disconnected worlds: memorizing theory just to pass semester exams, or trying to learn practical software development completely on their own.
+</p>
+<p class="page-lead">
+CodeMates bridges that gap. We are an independent, peer-driven tech community designed from the ground up to combine hands-on coding skill development with structured university exam and academic support—open to students from every college and degree stream.
+</p>
+</div>
+</section>
+<section class="section">
+<div class="section-header">
+<span class="section-tag">// TWO PILLARS, ONE ECOSYSTEM</span>
+<h2 class="section-title">Why CodeMates exists</h2>
+<p class="section-desc">
+We believe strong fundamentals in the classroom and real-world project building reinforce each other. Here is how we support both sides of your student journey:
+</p>
+</div>
+<div class="pillars-grid">
+<div class="card pillar-card">
+<span class="pillar-tag">PILLAR 01 // PRACTICAL SKILL-BUILDING</span>
+<h3 class="pillar-title">Real-World Coding & Projects</h3>
+<p class="pillar-text">
+Move beyond textbook syntax and build software that actually works. Whether you code on a laptop or a mobile phone, our focus is on shipping real projects and writing clean code.
+</p>
+<ul class="pillar-list">
+<li>Data Structures & Algorithms (DSA) problem-solving and logic building</li>
+<li>Full-stack web development, databases, APIs, and Git/GitHub workflows</li>
+<li>Showcasing peer projects so members can learn from real source code</li>
+<li>Curated tech radar covering trending tools, AI workflows, and internships</li>
+</ul>
+</div>
+<div class="card pillar-card">
+<span class="pillar-tag">PILLAR 02 // ACADEMIC & EXAM EXCELLENCE</span>
+<h3 class="pillar-title">Semester Prep & Study Support</h3>
+<p class="pillar-text">
+Your degree and CGPA matter. CodeMates makes exam preparation collaborative, organized, and stress-free so you never have to scramble for study material at the last minute.
+</p>
+<ul class="pillar-list">
+<li>Clear, semester-wise subject notes written in student-friendly language</li>
+<li>Previous Year Question Papers (PYQs) to master exam patterns and key topics</li>
+<li>Peer guidance sessions with seniors to break down tough syllabus subjects</li>
+<li>Collaborative doubt-solving before internal assessments and university finals</li>
+</ul>
+</div>
+</div>
+</section>
+<section class="section">
+<div class="section-header">
+<span class="section-tag">// NO CAMPUS WALLS</span>
+<h2 class="section-title">Open to every tech student, across all colleges</h2>
+<p class="section-desc">
+CodeMates is not locked to a single campus, university, or degree program. Whether you are studying computer applications, computer science, engineering, or business with a passion for technology, you belong here.
+</p>
+</div>
+<div class="courses-wrap" aria-label="Supported degree courses">
+<div class="course-pill"><span>#</span>BCA (Computer Applications)</div>
+<div class="course-pill"><span>#</span>BCS (Computer Science)</div>
+<div class="course-pill"><span>#</span>BCSIT (CS & Information Tech)</div>
+<div class="course-pill"><span>#</span>BTech / BE (Engineering)</div>
+<div class="course-pill"><span>#</span>BBA / BBA-CA (Management & Tech)</div>
+<div class="course-pill"><span>#</span>MCA / MSc & Self-Taught Builders</div>
+</div>
+</section>
+<section class="section">
+<div class="section-header">
+<span class="section-tag">// COMMUNITY CODE</span>
+<h2 class="section-title">How we learn and grow</h2>
+</div>
+<div class="values-grid">
+<div class="card value-card">
+<span class="value-num">01 / PEER-LED</span>
+<h3 class="value-title">Students Helping Students</h3>
+<p class="value-desc">
+Every note uploaded, project shared, and session hosted comes from peers and seniors who have walked the exact same path.
+</p>
+</div>
+<div class="card value-card">
+<span class="value-num">02 / EXPERIMENT FIRST</span>
+<h3 class="value-title">Learn by Doing</h3>
+<p class="value-desc">
+Experimentation is the fastest way to learn. Break things, fix bugs, push commits, and refine your craft alongside friends.
+</p>
+</div>
+<div class="card value-card">
+<span class="value-num">03 / RESOURCEFUL</span>
+<h3 class="value-title">Zero Gatekeeping</h3>
+<p class="value-desc">
+You do not need expensive hardware to start. We celebrate resourceful builders coding on everything from budget PCs to smartphones.
+</p>
+</div>
+<div class="card value-card">
+<span class="value-num">04 / CAREER READY</span>
+<h3 class="value-title">Beyond Graduation</h3>
+<p class="value-desc">
+By pairing strong academic results with a real GitHub portfolio, our members graduate ready for internships, jobs, and higher goals.
+</p>
+</div>
+</div>
+</section>
+<section class="section">
+<div class="cta-box">
+<div class="cta-content">
+<h2 class="cta-title">Ready to build and learn with CodeMates?</h2>
+<p class="cta-desc">
+Create your free member profile, explore study resources, or jump straight into our active WhatsApp community.
+</p>
+</div>
+<div class="cta-actions">
+<a href="signup.html" class="btn btn-primary" id="aboutJoinBtn">Create Member Account</a>
+<a href="join.html" class="btn btn-outline">Join WhatsApp Group</a>
+</div>
+</div>
+</section>
+</main>
+<footer class="footer">
+<div class="footer-inner">
+<div>© 2026 CodeMates Community. Built by students, for students.</div>
+<div class="footer-links">
+<a href="about.html">About</a>
+<a href="members.html">Members</a>
+<a href="projects.html">Projects</a>
+<a href="join.html">Join Us</a>
+</div>
+</div>
+</footer>
+<script src="js/auth-nav.js"></script>
+<script>
+(function () {
+var aboutJoinBtn = document.getElementById('aboutJoinBtn');
+if (typeof supabaseClient === 'undefined' || !aboutJoinBtn) return;
+supabaseClient.auth.getSession().then(function (result) {
+var session = result && result.data ? result.data.session : null;
+if (session && session.user) {
+aboutJoinBtn.textContent = 'Browse Community Members';
+aboutJoinBtn.setAttribute('href', 'members.html');
+}
+});
+})();
+</script>
+</body>
+  </html>
+  
