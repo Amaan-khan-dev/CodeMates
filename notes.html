@@ -599,6 +599,15 @@
 
       fetchnotes me ();
     })();
+<script>
+window.addEventListener('error', function (e) {
+  var box = document.getElementById('stateContainer');
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = '<span class="state-tag">// DEBUG</span><h2 class="state-title">JS Error</h2><p class="state-desc">' + e.message + '</p>';
+  }
+});
+</script>
   </script>
 </body>
 </html>
