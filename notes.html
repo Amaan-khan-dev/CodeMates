@@ -399,215 +399,177 @@
       </div>
     </div>
   </footer>
-
-  <script src="js/auth-nav.js"></script>
-  <script>
-    (function () {
-      var subjectFilter = document.getElementById('subjectFilter');
-      var semesterFilter = document.getElementById('semesterFilter');
-      var resetFiltersBtn = document.getElementById('resetFiltersBtn');
-      var resultsCount = document.getElementById('resultsCount');
-      var stateContainer = document.getElementById('stateContainer');
-      var notesGrid = document.getElementById('notesGrid');
-
-      var allNotes = [];
-
-      function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
-
-      function formatDate(isoString) {
-        if (!isoString) return '';
-        var d = new Date(isoString);
-        if (isNaN(d.getTime())) return '';
-        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-      }
-
-      function populateDropdowns(notes) {
-        var subjectsMap = {};
-        var semestersMap = {};
-        var subjects = [];
-        var semesters = [];
-
-        for (var i = 0; i < notes.length; i++) {
-          var subj = notes[i].subject ? String(notes[i].subject).trim() : '';
-          var sem = notes[i].semester ? String(notes[i].semester).trim() : '';
-
-          if (subj && !subjectsMap[subj]) {
-            subjectsMap[subj] = true;
-            subjects.push(subj);
-          }
-          if (sem && !semestersMap[sem]) {
-            semestersMap[sem] = true;
-            semesters.push(sem);
-          }
-        }
-
-        subjects.sort();
-        semesters.sort();
-
-        var subjectOptions = '<option value="">All Subjects</option>';
-        for (var j = 0; j < subjects.length; j++) {
-          var safeSubj = escapeHtml(subjects[j]);
-          subjectOptions += '<option value="' + safeSubj + '">' + safeSubj + '</option>';
-        }
-        subjectFilter.innerHTML = subjectOptions;
-
-        var semesterOptions = '<option value="">All Semesters</option>';
-        for (var k = 0; k < semesters.length; k++) {
-          var safeSem = escapeHtml(semesters[k]);
-          semesterOptions += '<option value="' + safeSem + '">' + safeSem + '</option>';
-        }
-        semesterFilter.innerHTML = semesterOptions;
-      }
-
-      function showEmptyState(tagText, titleText, descText) {
-        notesGrid.style.display = 'none';
-        notesGrid.innerHTML = '';
-        stateContainer.style.display = 'block';
-        stateContainer.innerHTML =
-          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
-          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
-          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
-      }
-
-      function renderNotes() {
-        var selectedSubject = subjectFilter.value;
-        var selectedSemester = semesterFilter.value;
-
-        var filtered = [];
-        for (var i = 0; i < allNotes.length; i++) {
-          var item = allNotes[i];
-          var itemSubj = item.subject ? String(item.subject).trim() : '';
-          var itemSem = item.semester ? String(item.semester).trim() : '';
-
-          var matchesSubject = !selectedSubject || itemSubj === selectedSubject;
-          var matchesSemester = !selectedSemester || itemSem === selectedSemester;
-
-          if (matchesSubject && matchesSemester) {
-            filtered.push(item);
-          }
-        }
-
-        var countLabel = filtered.length === 1 ? '1 note' : filtered.length + ' notes';
-        resultsCount.textContent = countLabel;
-
-        if (allNotes.length === 0) {
-          showEmptyState(
-            '// NO NOTES YET',
-            'No study notes published yet',
-            'Subject notes uploaded by CodeMates admins will appear here soon.'
-          );
-          return;
-        }
-
-        if (filtered.length === 0) {
-          showEmptyState(
-            '// NO MATCHES',
-            'No notes match your filters',
-            'Try selecting a different subject or semester, or reset the filters.'
-          );
-          return;
-        }
-
-        stateContainer.style.display = 'none';
-        notesGrid.style.display = 'grid';
-
-        var html = '';
-        for (var j = 0; j < filtered.length; j++) {
-          var note = filtered[j];
-          var title = escapeHtml(note.title || 'Untitled Note');
-          var subject = escapeHtml(note.subject || 'General');
-          var semester = escapeHtml(note.semester || 'All Sems');
-          var description = escapeHtml(note.description || 'No description provided.');
-          var dateStr = formatDate(note.created_at);
-          var linkUrl = note.external_link || note.file_url || '#';
-          var safeUrl = escapeHtml(linkUrl);
-
-          html +=
-            '<article class="card note-card">' +
-              '<div>' +
-                '<div class="note-tags">' +
-                  '<span class="note-tag">' + subject + '</span>' +
-                  '<span class="note-tag-secondary">' + semester + '</span>' +
-                '</div>' +
-                '<h2 class="note-title">' + title + '</h2>' +
-                '<p class="note-desc">' + description + '</p>' +
-              '</div>' +
-              '<div class="note-footer">' +
-                '<span class="note-date">' + escapeHtml(dateStr) + '</span>' +
-                '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-note">' +
-                  'Open Notes &rarr;' +
-                '</a>' +
-              '</div>' +
-            '</article>';
-        }
-
-        notesGrid.innerHTML = html;
-      }
-
-      async function fetchNotes() {
-        if (typeof supabaseClient === 'undefined') {
-          resultsCount.textContent = '0 notes';
-          showEmptyState(
-            '// CONNECTION ERROR',
-            'Supabase client not found',
-            'Please make sure js/supabaseClient.js is loaded properly.'
-          );
-          return;
-        }
-
-        try {
-          var response = await supabaseClient
-            .from('content')
-            .select('*')
-            .eq('type', 'note')
-            .order('created_at', { ascending: false });
-
-          if (response.error) {
-            throw response.error;
-          }
-
-          allNotes = response.data || [];
-          populateDropdowns(allNotes);
-          renderNotes();
-        } catch (err) {
-          resultsCount.textContent = 'Error';
-          showEmptyState(
-            '// ERROR LOADING NOTES',
-            'Could not load subject notes',
-            err.message || 'Please check your connection and try refreshing the page.'
-          );
-        }
-      }
-
-      subjectFilter.addEventListener('change', renderNotes);
-      semesterFilter.addEventListener('change', renderNotes);
-
-      resetFiltersBtn.addEventListener('click', function () {
-        subjectFilter.value = '';
-        semesterFilter.value = '';
-        renderNotes();
-      });
-
-      fetchnotes me ();
-    })();
+<script src="js/auth-nav.js"></script>
 <script>
-window.addEventListener('error', function (e) {
-  var box = document.getElementById('stateContainer');
-  if (box) {
-    box.style.display = 'block';
-    box.innerHTML = '<span class="state-tag">// DEBUG</span><h2 class="state-title">JS Error</h2><p class="state-desc">' + e.message + '</p>';
-  }
+(function () {
+var subjectFilter = document.getElementById('subjectFilter');
+var semesterFilter = document.getElementById('semesterFilter');
+var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+var resultsCount = document.getElementById('resultsCount');
+var stateContainer = document.getElementById('stateContainer');
+var notesGrid = document.getElementById('notesGrid');
+
+var allNotes = [];
+
+function escapeHtml(str) {
+if (!str) return '';
+return String(str)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#39;');
+}
+
+function formatDate(isoString) {
+if (!isoString) return '';
+var d = new Date(isoString);
+if (isNaN(d.getTime())) return '';
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function populateDropdowns(notes) {
+var subjectsMap = {};
+var semestersMap = {};
+var subjects = [];
+var semesters = [];
+
+for (var i = 0; i < notes.length; i++) {
+var subj = notes[i].subject ? String(notes[i].subject).trim() : '';
+var sem = notes[i].semester ? String(notes[i].semester).trim() : '';
+if (subj && !subjectsMap[subj]) { subjectsMap[subj] = true; subjects.push(subj); }
+if (sem && !semestersMap[sem]) { semestersMap[sem] = true; semesters.push(sem); }
+}
+
+subjects.sort();
+semesters.sort();
+
+var subjectOptions = '<option value="">All Subjects</option>';
+for (var j = 0; j < subjects.length; j++) {
+var safeSubj = escapeHtml(subjects[j]);
+subjectOptions += '<option value="' + safeSubj + '">' + safeSubj + '</option>';
+}
+subjectFilter.innerHTML = subjectOptions;
+
+var semesterOptions = '<option value="">All Semesters</option>';
+for (var k = 0; k < semesters.length; k++) {
+var safeSem = escapeHtml(semesters[k]);
+semesterOptions += '<option value="' + safeSem + '">' + safeSem + '</option>';
+}
+semesterFilter.innerHTML = semesterOptions;
+}
+
+function showEmptyState(tagText, titleText, descText) {
+notesGrid.style.display = 'none';
+notesGrid.innerHTML = '';
+stateContainer.style.display = 'block';
+stateContainer.innerHTML =
+'<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+'<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+'<p class="state-desc">' + escapeHtml(descText) + '</p>';
+}
+
+function renderNotes() {
+var selectedSubject = subjectFilter.value;
+var selectedSemester = semesterFilter.value;
+
+var filtered = [];
+for (var i = 0; i < allNotes.length; i++) {
+var item = allNotes[i];
+var itemSubj = item.subject ? String(item.subject).trim() : '';
+var itemSem = item.semester ? String(item.semester).trim() : '';
+var matchesSubject = !selectedSubject || itemSubj === selectedSubject;
+var matchesSemester = !selectedSemester || itemSem === selectedSemester;
+if (matchesSubject && matchesSemester) { filtered.push(item); }
+}
+
+var countLabel = filtered.length === 1 ? '1 note' : filtered.length + ' notes';
+resultsCount.textContent = countLabel;
+
+if (allNotes.length === 0) {
+showEmptyState('// NO NOTES YET', 'No study notes published yet', 'Subject notes uploaded by CodeMates admins will appear here soon.');
+return;
+}
+
+if (filtered.length === 0) {
+showEmptyState('// NO MATCHES', 'No notes match your filters', 'Try selecting a different subject or semester, or reset the filters.');
+return;
+}
+
+stateContainer.style.display = 'none';
+notesGrid.style.display = 'grid';
+
+var html = '';
+for (var j = 0; j < filtered.length; j++) {
+var note = filtered[j];
+var title = escapeHtml(note.title || 'Untitled Note');
+var subject = escapeHtml(note.subject || 'General');
+var semester = escapeHtml(note.semester || 'All Sems');
+var description = escapeHtml(note.description || 'No description provided.');
+var dateStr = formatDate(note.created_at);
+var linkUrl = note.external_link || note.file_url || '#';
+var safeUrl = escapeHtml(linkUrl);
+
+html +=
+'<article class="card note-card">' +
+'<div>' +
+'<div class="note-tags">' +
+'<span class="note-tag">' + subject + '</span>' +
+'<span class="note-tag-secondary">' + semester + '</span>' +
+'</div>' +
+'<h2 class="note-title">' + title + '</h2>' +
+'<p class="note-desc">' + description + '</p>' +
+'</div>' +
+'<div class="note-footer">' +
+'<span class="note-date">' + escapeHtml(dateStr) + '</span>' +
+'<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-note">Open Notes &rarr;</a>' +
+'</div>' +
+'</article>';
+}
+
+notesGrid.innerHTML = html;
+}
+
+async function fetchNotes() {
+if (typeof supabaseClient === 'undefined') {
+resultsCount.textContent = '0 notes';
+showEmptyState('// CONNECTION ERROR', 'Supabase client not found', 'Please make sure js/supabaseClient.js is loaded properly.');
+return;
+}
+
+try {
+var response = await supabaseClient
+.from('content')
+.select('*')
+.eq('type', 'note')
+.order('created_at', { ascending: false });
+
+if (response.error) { throw response.error; }
+
+allNotes = response.data || [];
+populateDropdowns(allNotes);
+renderNotes();
+} catch (err) {
+resultsCount.textContent = 'Error';
+showEmptyState('// ERROR LOADING NOTES', 'Could not load subject notes', err.message || 'Please check your connection and try refreshing the page.');
+}
+}
+
+subjectFilter.addEventListener('change', renderNotes);
+semesterFilter.addEventListener('change', renderNotes);
+
+resetFiltersBtn.addEventListener('click', function () {
+subjectFilter.value = '';
+semesterFilter.value = '';
+renderNotes();
 });
+
+fetchNotes();
+})();
 </script>
-  </script>
+</body>
+</html>
+  
 </body>
 </html>
