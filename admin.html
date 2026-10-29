@@ -1,0 +1,662 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — CodeMates</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <style>
+    /* Page-specific styles for Admin Panel (admin.html) */
+    .page-header {
+      padding: 2.5rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 768px) {
+      .page-header {
+        padding: 3.5rem 0 2.5rem;
+      }
+    }
+
+    .page-header .badge {
+      margin-bottom: 1rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .page-title span {
+      color: var(--accent);
+    }
+
+    @media (min-width: 768px) {
+      .page-title {
+        font-size: 2.65rem;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* Guard State Screen */
+    .guard-screen {
+      padding: 4rem 1rem;
+      text-align: center;
+      max-width: 480px;
+      margin: 3rem auto;
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .guard-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .guard-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    /* Admin Sections */
+    .admin-section {
+      margin-top: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-header-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+
+    .section-header-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 960px) {
+      .admin-grid {
+        grid-template-columns: 380px 1fr;
+        align-items: start;
+      }
+    }
+
+    .admin-form-card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B92A1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      padding-right: 2.2rem;
+    }
+
+    .btn-admin-submit {
+      width: 100%;
+      margin-top: 0.5rem;
+      background-color: var(--accent);
+      color: #FFFFFF;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-admin-submit:hover {
+      opacity: 0.92;
+    }
+
+    .btn-admin-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Table Container */
+    .table-card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    th, td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td {
+      color: var(--text);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-delete {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .btn-delete:hover {
+      background-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .table-empty {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    /* Status Notifications */
+    .admin-status {
+      display: none;
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-status.success {
+      display: block;
+      background-color: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34D399;
+    }
+
+    .admin-status.error {
+      display: block;
+      background-color: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">Code<span>Mates</span></a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-item-link">Home</a></li>
+          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
+          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
+          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
+          <li><a href="members.html" class="nav-item-link">Members</a></li>
+          <li><a href="events.html" class="nav-item-link">Events</a></li>
+          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right">
+        <div id="authNav">
+          <a href="signin.html" class="nav-link">Sign In</a>
+          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
+        </div>
+
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span id="themeLabel">LIGHT</span>
+        </button>
+
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+          MENU
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- AUTH / ADMIN GUARD WRAPPER -->
+  <main class="container" id="adminMainContainer" style="display: none;">
+    <section class="page-header">
+      <span class="badge">// RESTRICTED ACCESS</span>
+      <h1 class="page-title">Admin <span>Panel</span></h1>
+      <p class="page-subtitle">
+        Manage community content, student projects, upcoming events, and view registered member profiles.
+      </p>
+    </section>
+
+    <!-- SECTION 1: CONTENT (Notes, PYQs, Jobs, Trending) -->
+    <section class="admin-section">
+      <div class="section-header-title">1. Content Management</div>
+      <div class="section-header-desc">Publish and manage notes, previous year question papers, jobs, and trending posts.</div>
+
+      <div class="admin-grid">
+        <div class="admin-form-card">
+          <div id="contentStatus" class="admin-status"></div>
+          <form id="contentForm">
+            <div class="form-group">
+              <label for="contentType">Content Type</label>
+              <select id="contentType" required>
+                <option value="note">Note</option>
+                <option value="pyq">PYQ</option>
+                <option value="job">Job / Internship</option>
+                <option value="trending">Trending Topic</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="contentTitle">Title</label>
+              <input type="text" id="contentTitle" placeholder="e.g. Data Structures Unit 1 Notes" required />
+            </div>
+            <div class="form-group">
+              <label for="contentDesc">Description</label>
+              <textarea id="contentDesc" placeholder="Short description or summary..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="contentSubject">Subject (Notes/PYQs)</label>
+              <input type="text" id="contentSubject" placeholder="e.g. Data Structures" />
+            </div>
+            <div class="form-group">
+              <label for="contentSemester">Semester (Notes/PYQs)</label>
+              <input type="text" id="contentSemester" placeholder="e.g. Semester 3" />
+            </div>
+            <div class="form-group">
+              <label for="contentLink">External Link / File URL</label>
+              <input type="url" id="contentLink" placeholder="https://..." />
+            </div>
+            <button type="submit" class="btn-admin-submit" id="contentSubmitBtn">Publish Content</button>
+          </form>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Subject / Sem</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="contentTableBody">
+              <tr><td colspan="5" class="table-empty">Loading content...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: PROJECTS -->
+    <section class="admin-section">
+      <div class="section-header-title">2. Peer Projects</div>
+      <div class="section-header-desc">Showcase member projects and GitHub repositories.</div>
+
+      <div class="admin-grid">
+        <div class="admin-form-card">
+          <div id="projectStatus" class="admin-status"></div>
+          <form id="projectForm">
+            <div class="form-group">
+              <label for="projectTitle">Project Title</label>
+              <input type="text" id="projectTitle" placeholder="e.g. BusSaathi Transit System" required />
+            </div>
+            <div class="form-group">
+              <label for="projectMember">Member Name</label>
+              <input type="text" id="projectMember" placeholder="e.g. Amaan Khan" required />
+            </div>
+            <div class="form-group">
+              <label for="projectDesc">Description</label>
+              <textarea id="projectDesc" placeholder="What does this project do?"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="projectGithub">GitHub Link</label>
+              <input type="url" id="projectGithub" placeholder="https://github.com/..." required />
+            </div>
+            <button type="submit" class="btn-admin-submit" id="projectSubmitBtn">Add Project</button>
+          </form>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Member</th>
+                <th>GitHub</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="projectTableBody">
+              <tr><td colspan="4" class="table-empty">Loading projects...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: EVENTS -->
+    <section class="admin-section">
+      <div class="section-header-title">3. Community Events</div>
+      <div class="section-header-desc">Organize workshops, exam prep sessions, and meetups.</div>
+
+      <div class="admin-grid">
+        <div class="admin-form-card">
+          <div id="eventStatus" class="admin-status"></div>
+          <form id="eventForm">
+            <div class="form-group">
+              <label for="eventTitle">Event Title</label>
+              <input type="text" id="eventTitle" placeholder="e.g. DSA Study & Code Night" required />
+            </div>
+            <div class="form-group">
+              <label for="eventDate">Event Date & Time</label>
+              <input type="datetime-local" id="eventDate" required />
+            </div>
+            <div class="form-group">
+              <label for="eventLocation">Location or Meeting Link</label>
+              <input type="text" id="eventLocation" placeholder="e.g. Google Meet link or Room No." required />
+            </div>
+            <div class="form-group">
+              <label for="eventDesc">Description</label>
+              <textarea id="eventDesc" placeholder="Details about the session..."></textarea>
+            </div>
+            <button type="submit" class="btn-admin-submit" id="eventSubmitBtn">Create Event</button>
+          </form>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date & Time</th>
+                <th>Location / Link</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="eventTableBody">
+              <tr><td colspan="4" class="table-empty">Loading events...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: READ-ONLY MEMBERS DIRECTORY -->
+    <section class="admin-section">
+      <div class="section-header-title">4. Members Directory (Read-Only)</div>
+      <div class="section-header-desc">Overview of all registered user profiles and roles across the community.</div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>Role</th>
+              <th>Course</th>
+              <th>College</th>
+              <th>Joined At</th>
+            </tr>
+          </thead>
+          <tbody id="membersTableBody">
+            <tr><td colspan="5" class="table-empty">Loading members...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- GUARD SCREEN (Shown if not signed in or not admin) -->
+  <div id="guardScreen" class="guard-screen" style="display: none;">
+    <h2 class="guard-title" id="guardTitle">Checking permissions...</h2>
+    <p class="guard-desc" id="guardDesc">Please wait while we verify your admin credentials.</p>
+    <a href="index.html" class="btn btn-primary" id="guardBtn" style="display: none;">Return to Home</a>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="members.html">Members</a>
+        <a href="projects.html">Projects</a>
+        <a href="join.html">Join Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/auth-nav.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
+
+<!-- ======================================================================= -->
+
+<!-- js/admin.js -->
+(function () {
+  var adminMainContainer = document.getElementById('adminMainContainer');
+  var guardScreen = document.getElementById('guardScreen');
+  var guardTitle = document.getElementById('guardTitle');
+  var guardDesc = document.getElementById('guardDesc');
+  var guardBtn = document.getElementById('guardBtn');
+
+  function showGuardError(title, desc) {
+    if (adminMainContainer) adminMainContainer.style.display = 'none';
+    if (guardScreen) guardScreen.style.display = 'block';
+    if (guardTitle) guardTitle.textContent = title;
+    if (guardDesc) guardDesc.textContent = desc;
+    if (guardBtn) guardBtn.style.display = 'inline-flex';
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatDate(isoString) {
+    if (!isoString) return '';
+    var d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function formatDateTime(isoString) {
+    if (!isoString) return 'TBD';
+    var d = new Date(isoString);
+    if (isNaN(d.getTime())) return escapeHtml(isoString);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var hours = d.getHours();
+    var minutes = d.getMinutes();
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    var minStr = minutes < 10 ? '0' + minutes : minutes;
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ', ' + hours + ':' + minStr + ' ' + ampm;
+  }
+
+  function setStatus(statusElId, message, type) {
+    var el = document.getElementById(statusElId);
+    if (!el) return;
+    el.textContent = message;
+    el.className = 'admin-status ' + type;
+    setTimeout(function () {
+      el.className = 'admin-status';
+      el.textContent = '';
+    }, 4000);
+  }
+
+  async function initAdmin() {
+    if (typeof supabaseClient === 'undefined') {
+      showGuardError('Connection Error', 'Supabase client is not loaded properly.');
+      return;
+    }
+
+    var sessionRes = await supabaseClient.auth.getSession();
+    var session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
+
+    if (!session || !session.user) {
+      window.location.href = 'signin.html';
+      return;
+    }
+
+    var profileRes = await supabaseClient
+      .from('profiles')
+      .select('role, full_name')
+      .eq('id', session.user.id)
+      .single();
+
+    var profile = profileRes.data;
+    if (!profile || profile.role !== 'admin') {
+      showGuardError(
+        'Access Denied',
+        'Your account does not have admin privileges. Only users with profiles.role = "admin" can access this panel.'
+      );
+      
