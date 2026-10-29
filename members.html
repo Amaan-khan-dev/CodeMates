@@ -351,7 +351,22 @@
         var html = '';
         for (var i = 0; i < members.length; i++) {
           var member = members[i];
-          var fullName = escapeHtml(member.full_name || 'CodeMates Member');
+      
+    /* var fullName = escapeHtml(member.full_name || 'CodeMates Member'); */
+ 
+function maskName(name) {
+  if (!name) return 'CodeMates Member';
+  var n = String(name).trim();
+  if (n.length <= 2) return n.charAt(0) + '*';
+  var first = n.charAt(0);
+  var last = n.charAt(n.length - 1);
+  var stars = '';
+  for (var s = 0; s < n.length - 2; s++) { stars += '*'; }
+  return first + stars + last;
+}
+
+var fullName = escapeHtml(maskName(member.full_name));
+
           var course = escapeHtml(member.course || 'Student');
           var college = escapeHtml(member.college || 'College');
           var dateStr = formatDate(member.created_at);
