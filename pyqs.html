@@ -2,603 +2,501 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Previous Year Questions (PYQs) — CodeMates</title>
-  <link rel="stylesheet" href="css/theme.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabaseClient.js"></script>
-  <style>
-    /* Page-specific styles for PYQs (pyqs.html) */
-    .page-header {
-      padding: 2.5rem 0 2rem;
-      border-bottom: 1px solid var(--border);
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Previous Year Questions (PYQs) — CodeMates</title>
+<link rel="stylesheet" href="css/theme.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<style>
+.page-header { padding: 2.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+@media (min-width: 768px) { .page-header { padding: 3.5rem 0 2.5rem; } }
+.page-header .badge { margin-bottom: 1rem; }
+.page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.65rem; }
+.page-title span { color: var(--accent); }
+@media (min-width: 768px) { .page-title { font-size: 2.65rem; } }
+.page-subtitle { font-size: 1rem; color: var(--muted); max-width: 640px; line-height: 1.65; }
 
-    @media (min-width: 768px) {
-      .page-header {
-        padding: 3.5rem 0 2.5rem;
-      }
-    }
+.guest-note {
+display: none;
+margin-top: 1.5rem;
+background-color: rgba(255, 107, 74, 0.08);
+border: 1px solid rgba(255, 107, 74, 0.3);
+border-radius: 10px;
+padding: 0.85rem 1rem;
+font-size: 0.875rem;
+color: var(--text);
+line-height: 1.5;
+}
+.guest-note a { color: var(--accent); font-weight: 600; }
 
-    .page-header .badge {
-      margin-bottom: 1rem;
-    }
+.filter-bar {
+margin-top: 1.5rem;
+margin-bottom: 1.75rem;
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 1rem;
+display: flex;
+flex-direction: column;
+gap: 0.85rem;
+}
+@media (min-width: 768px) {
+.filter-bar { flex-direction: row; align-items: flex-end; justify-content: space-between; padding: 1.15rem 1.25rem; }
+}
+.filter-controls { display: grid; grid-template-columns: 1fr; gap: 0.85rem; flex: 1; }
+@media (min-width: 540px) { .filter-controls { grid-template-columns: repeat(2, 1fr); max-width: 520px; } }
+.filter-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.filter-label {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+font-weight: 500;
+color: var(--muted);
+text-transform: uppercase;
+letter-spacing: 0.04em;
+}
+.filter-select {
+width: 100%;
+background-color: var(--bg);
+color: var(--text);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 0.6rem 2.2rem 0.6rem 0.8rem;
+font-family: 'Inter', sans-serif;
+font-size: 0.875rem;
+outline: none;
+cursor: pointer;
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B92A1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 0.8rem center;
+transition: border-color 0.15s ease;
+}
+.filter-select:focus { border-color: var(--accent); }
+.filter-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.results-count { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); }
+.btn-reset {
+background: transparent;
+border: 1px solid var(--border);
+color: var(--muted);
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+padding: 0.45rem 0.75rem;
+border-radius: 8px;
+cursor: pointer;
+transition: color 0.15s ease, border-color 0.15s ease;
+}
+.btn-reset:hover { color: var(--text); border-color: var(--accent); }
 
-    .page-title {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.65rem;
-    }
+.items-grid { display: grid; grid-template-columns: 1fr; gap: 1.15rem; padding-bottom: 2.5rem; }
+@media (min-width: 640px) { .items-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .items-grid { grid-template-columns: repeat(3, 1fr); } }
+.item-card { display: flex; flex-direction: column; justify-content: space-between; gap: 1.15rem; height: 100%; }
+.item-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.75rem; }
+.item-tag {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+font-weight: 500;
+padding: 0.22rem 0.55rem;
+border-radius: 6px;
+background-color: rgba(255, 107, 74, 0.1);
+color: var(--accent);
+border: 1px solid rgba(255, 107, 74, 0.25);
+}
+.item-tag-secondary {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+font-weight: 500;
+padding: 0.22rem 0.55rem;
+border-radius: 6px;
+background-color: var(--bg);
+color: var(--muted);
+border: 1px solid var(--border);
+}
+.item-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text); }
+.item-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.6; word-break: break-word; }
+.item-footer {
+padding-top: 1rem;
+border-top: 1px solid var(--border);
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 0.75rem;
+}
+.item-date { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+.btn-open-item { padding: 0.5rem 0.9rem; font-size: 0.8125rem; }
 
-    .page-title span {
-      color: var(--accent);
-    }
+.state-box {
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 3rem 1.5rem;
+text-align: center;
+margin-bottom: 2.5rem;
+}
+.state-tag {
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.75rem;
+color: var(--accent);
+display: inline-block;
+margin-bottom: 0.5rem;
+}
+.state-title { font-size: 1.25rem; margin-bottom: 0.4rem; }
+.state-desc { font-size: 0.9rem; color: var(--muted); max-width: 440px; margin: 0 auto; }
 
-    @media (min-width: 768px) {
-      .page-title {
-        font-size: 2.65rem;
-      }
-    }
+.lock-backdrop {
+position: fixed;
+inset: 0;
+background: rgba(0, 0, 0, 0.65);
+display: none;
+align-items: center;
+justify-content: center;
+padding: 1rem;
+z-index: 998;
+}
+.lock-backdrop.open { display: flex; }
+.lock-card {
+width: 100%;
+max-width: 420px;
+background-color: var(--card);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 1.75rem 1.5rem;
+text-align: center;
+}
+.lock-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
+.lock-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.25rem; }
+.lock-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-bottom: 1rem; }
+.lock-close {
+background: none;
+border: 1px solid var(--border);
+color: var(--muted);
+border-radius: 8px;
+padding: 0.35rem 0.8rem;
+cursor: pointer;
+font-family: 'JetBrains Mono', monospace;
+font-size: 0.72rem;
+}
 
-    .page-subtitle {
-      font-size: 1rem;
-      color: var(--muted);
-      max-width: 640px;
-      line-height: 1.65;
-    }
-
-    /* Filter Bar */
-    .filter-bar {
-      margin-top: 2rem;
-      margin-bottom: 1.75rem;
-      background-color: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    @media (min-width: 768px) {
-      .filter-bar {
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: space-between;
-        padding: 1.15rem 1.25rem;
-      }
-    }
-
-    .filter-controls {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.85rem;
-      flex: 1;
-    }
-
-    @media (min-width: 540px) {
-      .filter-controls {
-        grid-template-columns: repeat(2, 1fr);
-        max-width: 520px;
-      }
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .filter-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 500;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .filter-select {
-      width: 100%;
-      background-color: var(--bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.6rem 2.2rem 0.6rem 0.8rem;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.875rem;
-      outline: none;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B92A1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.8rem center;
-      transition: border-color 0.15s ease;
-    }
-
-    .filter-select:focus {
-      border-color: var(--accent);
-    }
-
-    .filter-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .results-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .btn-reset {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      padding: 0.45rem 0.75rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: color 0.15s ease, border-color 0.15s ease;
-    }
-
-    .btn-reset:hover {
-      color: var(--text);
-      border-color: var(--accent);
-    }
-
-    /* PYQs Grid & Cards */
-    .pyqs-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.15rem;
-      padding-bottom: 2.5rem;
-    }
-
-    @media (min-width: 640px) {
-      .pyqs-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (min-width: 960px) {
-      .pyqs-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    .pyq-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 1.15rem;
-      height: 100%;
-    }
-
-    .pyq-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .pyq-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 500;
-      padding: 0.22rem 0.55rem;
-      border-radius: 6px;
-      background-color: rgba(255, 107, 74, 0.1);
-      color: var(--accent);
-      border: 1px solid rgba(255, 107, 74, 0.25);
-    }
-
-    .pyq-tag-secondary {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 500;
-      padding: 0.22rem 0.55rem;
-      border-radius: 6px;
-      background-color: var(--bg);
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-
-    .pyq-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .pyq-desc {
-      font-size: 0.875rem;
-      color: var(--muted);
-      line-height: 1.6;
-      word-break: break-word;
-    }
-
-    .pyq-footer {
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .pyq-date {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    .btn-open-pyq {
-      padding: 0.5rem 0.9rem;
-      font-size: 0.8125rem;
-    }
-
-    /* Empty & Loading States */
-    .state-box {
-      background-color: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 3rem 1.5rem;
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .state-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--accent);
-      display: inline-block;
-      margin-bottom: 0.5rem;
-    }
-
-    .state-title {
-      font-size: 1.25rem;
-      margin-bottom: 0.4rem;
-    }
-
-    .state-desc {
-      font-size: 0.9rem;
-      color: var(--muted);
-      max-width: 440px;
-      margin: 0 auto;
-    }
-
-    /* Footer */
-    .footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 1rem;
-      margin-top: auto;
-    }
-
-    .footer-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      align-items: flex-start;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    @media (min-width: 640px) {
-      .footer-inner {
-        flex-direction: row;
-        align-items: center;
-      }
-    }
-
-    .footer-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .footer-links a:hover {
-      color: var(--accent);
-    }
-  </style>
+.footer { border-top: 1px solid var(--border); padding: 2rem 1rem; margin-top: auto; }
+.footer-inner {
+max-width: 1120px;
+margin: 0 auto;
+display: flex;
+flex-direction: column;
+gap: 1rem;
+align-items: flex-start;
+justify-content: space-between;
+font-size: 0.85rem;
+color: var(--muted);
+}
+@media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
+.footer-links a:hover { color: var(--accent); }
+</style>
 </head>
 <body>
 
-  <header class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="brand">Code<span>Mates</span></a>
+<header class="navbar">
+<div class="nav-container">
+<a href="index.html" class="brand">Code<span>Mates</span></a>
+<nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+<ul class="nav-links">
+<li><a href="index.html" class="nav-item-link">Home</a></li>
+<li><a href="notes.html" class="nav-item-link">Notes</a></li>
+<li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
+<li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
+<li><a href="trending.html" class="nav-item-link">Trending</a></li>
+<li><a href="projects.html" class="nav-item-link">Projects</a></li>
+<li><a href="members.html" class="nav-item-link">Members</a></li>
+<li><a href="events.html" class="nav-item-link">Events</a></li>
+<li><a href="join.html" class="nav-item-link">Join Us</a></li>
+</ul>
+</nav>
+<div class="nav-right">
+<div id="authNav">
+<a href="signin.html" class="nav-link">Sign In</a>
+<a href="signup.html" class="nav-btn-primary">Sign Up</a>
+</div>
+<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+<span id="themeLabel">LIGHT</span>
+</button>
+<button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">MENU</button>
+</div>
+</div>
+</header>
 
-      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
-        <ul class="nav-links">
-          <li><a href="index.html" class="nav-item-link">Home</a></li>
-          <li><a href="notes.html" class="nav-item-link">Notes</a></li>
-          <li><a href="pyqs.html" class="nav-item-link">PYQs</a></li>
-          <li><a href="jobs.html" class="nav-item-link">Jobs</a></li>
-          <li><a href="trending.html" class="nav-item-link">Trending</a></li>
-          <li><a href="projects.html" class="nav-item-link">Projects</a></li>
-          <li><a href="members.html" class="nav-item-link">Members</a></li>
-          <li><a href="events.html" class="nav-item-link">Events</a></li>
-          <li><a href="join.html" class="nav-item-link">Join Us</a></li>
-        </ul>
-      </nav>
+<main class="container">
+<section class="page-header">
+<span class="badge">// EXAM PREPARATION</span>
+<h1 class="page-title">Previous Year <span>Questions</span></h1>
+<p class="page-subtitle">Past university question papers organized by subject and semester so you can master exam patterns, practice important questions, and walk into every exam prepared.</p>
+<div id="guestNote" class="guest-note">
+&#128274; Study material is for registered members. <a href="signup.html">Sign up free</a> or <a href="signin.html">sign in</a> to open it.
+</div>
+</section>
 
-      <div class="nav-right">
-        <div id="authNav">
-          <a href="signin.html" class="nav-link">Sign In</a>
-          <a href="signup.html" class="nav-btn-primary">Sign Up</a>
-        </div>
+<section class="filter-bar" aria-label="Filters">
+<div class="filter-controls">
+<div class="filter-group">
+<label for="subjectFilter" class="filter-label">Subject</label>
+<select id="subjectFilter" class="filter-select">
+<option value="">All Subjects</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="semesterFilter" class="filter-label">Semester</label>
+<select id="semesterFilter" class="filter-select">
+<option value="">All Semesters</option>
+</select>
+</div>
+</div>
+<div class="filter-meta">
+<span class="results-count" id="resultsCount">Loading...</span>
+<button type="button" class="btn-reset" id="resetFiltersBtn">RESET</button>
+</div>
+</section>
 
-        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-          <span id="themeLabel">LIGHT</span>
-        </button>
+<div id="stateContainer" class="state-box">
+<span class="state-tag">// FETCHING DATA</span>
+<h2 class="state-title">Loading PYQs...</h2>
+<p class="state-desc">Connecting to CodeMates database.</p>
+</div>
 
-        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
-          MENU
-        </button>
-      </div>
-    </div>
-  </header>
+<div id="itemsGrid" class="items-grid" style="display: none;"></div>
+</main>
 
-  <main class="container">
-    <section class="page-header">
-      <span class="badge">// EXAM PREPARATION</span>
-      <h1 class="page-title">Previous Year <span>Questions</span></h1>
-      <p class="page-subtitle">
-        Past university question papers organized by subject and semester so you can master exam patterns, practice important questions, and walk into every exam prepared.
-      </p>
-    </section>
+<div id="lockModal" class="lock-backdrop">
+<div class="lock-card" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+<span class="state-tag">// MEMBERS ONLY</span>
+<h2 class="lock-title" id="lockTitle">Please sign up to access this material</h2>
+<p class="lock-desc">Study material is available only to registered CodeMates members. Create a free account or sign in to open it.</p>
+<div class="lock-actions">
+<a href="signup.html" class="btn btn-primary">Sign Up</a>
+<a href="signin.html" class="btn btn-outline">Sign In</a>
+</div>
+<button type="button" class="lock-close" id="lockClose">CLOSE</button>
+</div>
+</div>
 
-    <section class="filter-bar" aria-label="Filter PYQs">
-      <div class="filter-controls">
-        <div class="filter-group">
-          <label for="subjectFilter" class="filter-label">Subject</label>
-          <select id="subjectFilter" class="filter-select">
-            <option value="">All Subjects</option>
-          </select>
-        </div>
+<footer class="footer">
+<div class="footer-inner">
+<div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
+<div class="footer-links">
+<a href="about.html">About</a>
+<a href="members.html">Members</a>
+<a href="projects.html">Projects</a>
+<a href="join.html">Join Us</a>
+</div>
+</div>
+</footer>
 
-        <div class="filter-group">
-          <label for="semesterFilter" class="filter-label">Semester</label>
-          <select id="semesterFilter" class="filter-select">
-            <option value="">All Semesters</option>
-          </select>
-        </div>
-      </div>
+<script src="js/auth-nav.js"></script>
+<script>
+(function () {
+var ITEM_TYPE = 'pyq';
+var subjectFilter = document.getElementById('subjectFilter');
+var semesterFilter = document.getElementById('semesterFilter');
+var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+var resultsCount = document.getElementById('resultsCount');
+var stateContainer = document.getElementById('stateContainer');
+var itemsGrid = document.getElementById('itemsGrid');
+var guestNote = document.getElementById('guestNote');
+var lockModal = document.getElementById('lockModal');
+var lockClose = document.getElementById('lockClose');
 
-      <div class="filter-meta">
-        <span class="results-count" id="resultsCount">Loading...</span>
-        <button type="button" class="btn-reset" id="resetFiltersBtn">RESET</button>
-      </div>
-    </section>
+var allItems = [];
+var isSignedIn = false;
 
-    <div id="stateContainer" class="state-box">
-      <span class="state-tag">// FETCHING DATA</span>
-      <h2 class="state-title">Loading PYQs...</h2>
-      <p class="state-desc">Connecting to CodeMates database.</p>
-    </div>
+function escapeHtml(str) {
+if (!str) return '';
+return String(str)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#39;');
+}
 
-    <div id="pyqsGrid" class="pyqs-grid" style="display: none;"></div>
-  </main>
+function formatDate(isoString) {
+if (!isoString) return '';
+var d = new Date(isoString);
+if (isNaN(d.getTime())) return '';
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
 
-  <footer class="footer">
-    <div class="footer-inner">
-      <div>&copy; 2026 CodeMates Community. Built by students, for students.</div>
-      <div class="footer-links">
-        <a href="about.html">About</a>
-        <a href="members.html">Members</a>
-        <a href="projects.html">Projects</a>
-        <a href="join.html">Join Us</a>
-      </div>
-    </div>
-  </footer>
+function openLock() { lockModal.classList.add('open'); }
+function closeLock() { lockModal.classList.remove('open'); }
 
-  <script src="js/auth-nav.js"></script>
-  <script>
-    (function () {
-      var subjectFilter = document.getElementById('subjectFilter');
-      var semesterFilter = document.getElementById('semesterFilter');
-      var resetFiltersBtn = document.getElementById('resetFiltersBtn');
-      var resultsCount = document.getElementById('resultsCount');
-      var stateContainer = document.getElementById('stateContainer');
-      var pyqsGrid = document.getElementById('pyqsGrid');
+function populateDropdowns(items) {
+var subjectsMap = {};
+var semestersMap = {};
+var subjects = [];
+var semesters = [];
 
-      var allPyqs = [];
+for (var i = 0; i < items.length; i++) {
+var subj = items[i].subject ? String(items[i].subject).trim() : '';
+var sem = items[i].semester ? String(items[i].semester).trim() : '';
+if (subj && !subjectsMap[subj]) { subjectsMap[subj] = true; subjects.push(subj); }
+if (sem && !semestersMap[sem]) { semestersMap[sem] = true; semesters.push(sem); }
+}
 
-      function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
+subjects.sort();
+semesters.sort();
 
-      function formatDate(isoString) {
-        if (!isoString) return '';
-        var d = new Date(isoString);
-        if (isNaN(d.getTime())) return '';
-        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-      }
+var subjectOptions = '<option value="">All Subjects</option>';
+for (var j = 0; j < subjects.length; j++) {
+var safeSubj = escapeHtml(subjects[j]);
+subjectOptions += '<option value="' + safeSubj + '">' + safeSubj + '</option>';
+}
+subjectFilter.innerHTML = subjectOptions;
 
-      function populateDropdowns(pyqs) {
-        var subjectsMap = {};
-        var semestersMap = {};
-        var subjects = [];
-        var semesters = [];
+var semesterOptions = '<option value="">All Semesters</option>';
+for (var k = 0; k < semesters.length; k++) {
+var safeSem = escapeHtml(semesters[k]);
+semesterOptions += '<option value="' + safeSem + '">' + safeSem + '</option>';
+}
+semesterFilter.innerHTML = semesterOptions;
+}
 
-        for (var i = 0; i < pyqs.length; i++) {
-          var subj = pyqs[i].subject ? String(pyqs[i].subject).trim() : '';
-          var sem = pyqs[i].semester ? String(pyqs[i].semester).trim() : '';
+function showEmptyState(tagText, titleText, descText) {
+itemsGrid.style.display = 'none';
+itemsGrid.innerHTML = '';
+stateContainer.style.display = 'block';
+stateContainer.innerHTML =
+'<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
+'<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
+'<p class="state-desc">' + escapeHtml(descText) + '</p>';
+}
 
-          if (subj && !subjectsMap[subj]) {
-            subjectsMap[subj] = true;
-            subjects.push(subj);
-          }
-          if (sem && !semestersMap[sem]) {
-            semestersMap[sem] = true;
-            semesters.push(sem);
-          }
-        }
+function renderItems() {
+var selectedSubject = subjectFilter.value;
+var selectedSemester = semesterFilter.value;
 
-        subjects.sort();
-        semesters.sort();
+var filtered = [];
+for (var i = 0; i < allItems.length; i++) {
+var item = allItems[i];
+var itemSubj = item.subject ? String(item.subject).trim() : '';
+var itemSem = item.semester ? String(item.semester).trim() : '';
+var matchesSubject = !selectedSubject || itemSubj === selectedSubject;
+var matchesSemester = !selectedSemester || itemSem === selectedSemester;
+if (matchesSubject && matchesSemester) { filtered.push(item); }
+}
 
-        var subjectOptions = '<option value="">All Subjects</option>';
-        for (var j = 0; j < subjects.length; j++) {
-          var safeSubj = escapeHtml(subjects[j]);
-          subjectOptions += '<option value="' + safeSubj + '">' + safeSubj + '</option>';
-        }
-        subjectFilter.innerHTML = subjectOptions;
+resultsCount.textContent = filtered.length === 1 ? '1 PYQ' : filtered.length + ' PYQs';
 
-        var semesterOptions = '<option value="">All Semesters</option>';
-        for (var k = 0; k < semesters.length; k++) {
-          var safeSem = escapeHtml(semesters[k]);
-          semesterOptions += '<option value="' + safeSem + '">' + safeSem + '</option>';
-        }
-        semesterFilter.innerHTML = semesterOptions;
-      }
+if (allItems.length === 0) {
+showEmptyState('// NO PYQS YET', 'No question papers published yet', 'Previous year question papers uploaded by CodeMates admins will appear here soon.');
+return;
+}
 
-      function showEmptyState(tagText, titleText, descText) {
-        pyqsGrid.style.display = 'none';
-        pyqsGrid.innerHTML = '';
-        stateContainer.style.display = 'block';
-        stateContainer.innerHTML =
-          '<span class="state-tag">' + escapeHtml(tagText) + '</span>' +
-          '<h2 class="state-title">' + escapeHtml(titleText) + '</h2>' +
-          '<p class="state-desc">' + escapeHtml(descText) + '</p>';
-      }
+if (filtered.length === 0) {
+showEmptyState('// NO MATCHES', 'No PYQs match your filters', 'Try selecting a different subject or semester, or reset the filters.');
+return;
+}
 
-      function renderPyqs() {
-        var selectedSubject = subjectFilter.value;
-        var selectedSemester = semesterFilter.value;
+stateContainer.style.display = 'none';
+itemsGrid.style.display = 'grid';
 
-        var filtered = [];
-        for (var i = 0; i < allPyqs.length; i++) {
-          var item = allPyqs[i];
-          var itemSubj = item.subject ? String(item.subject).trim() : '';
-          var itemSem = item.semester ? String(item.semester).trim() : '';
+var html = '';
+for (var j = 0; j < filtered.length; j++) {
+var entry = filtered[j];
+var title = escapeHtml(entry.title || 'Untitled Question Paper');
+var subject = escapeHtml(entry.subject || 'General');
+var semester = escapeHtml(entry.semester || 'All Sems');
+var description = escapeHtml(entry.description || 'No description provided.');
+var dateStr = formatDate(entry.created_at);
+var linkUrl = entry.external_link || entry.file_url || '';
+var actionHtml = '';
 
-          var matchesSubject = !selectedSubject || itemSubj === selectedSubject;
-          var matchesSemester = !selectedSemester || itemSem === selectedSemester;
+if (isSignedIn) {
+if (linkUrl) {
+actionHtml = '<a href="' + escapeHtml(linkUrl) + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-item">Open PYQ &rarr;</a>';
+}
+} else {
+actionHtml = '<button type="button" class="btn btn-primary btn-open-item btn-locked">&#128274; Open PYQ</button>';
+}
 
-          if (matchesSubject && matchesSemester) {
-            filtered.push(item);
-          }
-        }
+html +=
+'<article class="card item-card">' +
+'<div>' +
+'<div class="item-tags">' +
+'<span class="item-tag">' + subject + '</span>' +
+'<span class="item-tag-secondary">' + semester + '</span>' +
+'</div>' +
+'<h2 class="item-title">' + title + '</h2>' +
+'<p class="item-desc">' + description + '</p>' +
+'</div>' +
+'<div class="item-footer">' +
+'<span class="item-date">' + escapeHtml(dateStr) + '</span>' +
+actionHtml +
+'</div>' +
+'</article>';
+}
 
-        var countLabel = filtered.length === 1 ? '1 PYQ' : filtered.length + ' PYQs';
-        resultsCount.textContent = countLabel;
+itemsGrid.innerHTML = html;
+}
 
-        if (allPyqs.length === 0) {
-          showEmptyState(
-            '// NO PYQS YET',
-            'No question papers published yet',
-            'Previous year question papers uploaded by CodeMates admins will appear here soon.'
-          );
-          return;
-        }
+async function fetchItems() {
+if (typeof supabaseClient === 'undefined') {
+resultsCount.textContent = '0';
+showEmptyState('// CONNECTION ERROR', 'Supabase client not found', 'Please make sure js/supabaseClient.js is loaded properly.');
+return;
+}
 
-        if (filtered.length === 0) {
-          showEmptyState(
-            '// NO MATCHES',
-            'No PYQs match your filters',
-            'Try selecting a different subject or semester, or reset the filters.'
-          );
-          return;
-        }
+try {
+var sessionRes = await supabaseClient.auth.getSession();
+var session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
+isSignedIn = !!(session && session.user);
 
-        stateContainer.style.display = 'none';
-        pyqsGrid.style.display = 'grid';
+if (!isSignedIn) {
+guestNote.style.display = 'block';
+}
 
-        var html = '';
-        for (var j = 0; j < filtered.length; j++) {
-          var pyq = filtered[j];
-          var title = escapeHtml(pyq.title || 'Untitled Question Paper');
-          var subject = escapeHtml(pyq.subject || 'General');
-          var semester = escapeHtml(pyq.semester || 'All Sems');
-          var description = escapeHtml(pyq.description || 'No description provided.');
-          var dateStr = formatDate(pyq.created_at);
-          var linkUrl = pyq.external_link || pyq.file_url || '#';
-          var safeUrl = escapeHtml(linkUrl);
+var source = isSignedIn ? 'content' : 'content_preview';
 
-          html +=
-            '<article class="card pyq-card">' +
-              '<div>' +
-                '<div class="pyq-tags">' +
-                  '<span class="pyq-tag">' + subject + '</span>' +
-                  '<span class="pyq-tag-secondary">' + semester + '</span>' +
-                '</div>' +
-                '<h2 class="pyq-title">' + title + '</h2>' +
-                '<p class="pyq-desc">' + description + '</p>' +
-              '</div>' +
-              '<div class="pyq-footer">' +
-                '<span class="pyq-date">' + escapeHtml(dateStr) + '</span>' +
-                '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-pyq">' +
-                  'Open PYQ &rarr;' +
-                '</a>' +
-              '</div>' +
-            '</article>';
-        }
+var response = await supabaseClient
+.from(source)
+.select('*')
+.eq('type', ITEM_TYPE)
+.order('created_at', { ascending: false });
 
-        pyqsGrid.innerHTML = html;
-      }
+if (response.error) { throw response.error; }
 
-      async function fetchPyqs() {
-        if (typeof supabaseClient === 'undefined') {
-          resultsCount.textContent = '0 PYQs';
-          showEmptyState(
-            '// CONNECTION ERROR',
-            'Supabase client not found',
-            'Please make sure js/supabaseClient.js is loaded properly.'
-          );
-          return;
-        }
+allItems = response.data || [];
+populateDropdowns(allItems);
+renderItems();
+} catch (err) {
+resultsCount.textContent = 'Error';
+showEmptyState('// ERROR LOADING PYQS', 'Could not load question papers', err.message || 'Please check your connection and try refreshing the page.');
+}
+}
 
-        try {
-          var response = await supabaseClient
-            .from('content')
-            .select('*')
-            .eq('type', 'pyq')
-            .order('created_at', { ascending: false });
+subjectFilter.addEventListener('change', renderItems);
+semesterFilter.addEventListener('change', renderItems);
 
-          if (response.error) {
-            throw response.error;
-          }
+resetFiltersBtn.addEventListener('click', function () {
+subjectFilter.value = '';
+semesterFilter.value = '';
+renderItems();
+});
 
-          allPyqs = response.data || [];
-          populateDropdowns(allPyqs);
-          renderPyqs();
-        } catch (err) {
-          resultsCount.textContent = 'Error';
-          showEmptyState(
-            '// ERROR LOADING PYQS',
-            'Could not load question papers',
-            err.message || 'Please check your connection and try refreshing the page.'
-          );
-        }
-      }
+itemsGrid.addEventListener('click', function (e) {
+var lockedBtn = e.target.closest ? e.target.closest('.btn-locked') : null;
+if (lockedBtn) { openLock(); }
+});
 
-      subjectFilter.addEventListener('change', renderPyqs);
-      semesterFilter.addEventListener('change', renderPyqs);
+lockClose.addEventListener('click', closeLock);
+lockModal.addEventListener('click', function (e) {
+if (e.target === lockModal) { closeLock(); }
+});
+document.addEventListener('keydown', function (e) {
+if (e.key === 'Escape') { closeLock(); }
+});
 
-      resetFiltersBtn.addEventListener('click', function () {
-        subjectFilter.value = '';
-        semesterFilter.value = '';
-        renderPyqs();
-      });
-
-      fetchPyqs();
-    })();
-  </script>
+fetchItems();
+})();
+</script>
 </body>
 </html>
